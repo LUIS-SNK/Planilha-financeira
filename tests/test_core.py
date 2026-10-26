@@ -1,4 +1,5 @@
 import tempfile
+from contextlib import closing
 import unittest
 import zipfile
 from pathlib import Path
@@ -16,8 +17,12 @@ class FinanceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             path=Path(d)/'copy.db'; store.backup(path)
             copied=Store(path)
-            self.assertEqual(copied.rows('2026-07')[0]['amount'],12000)
-            self.assertEqual(copied.rows('2026-07')[0]['paid'],0)
+            with closing(copied.db):
+                self.assertEqual(copied.rows('2026-07')[0]['amount'],12000)
+                self.assertEqual(copied.rows('2026-07')[0]['paid'],0)
+            # Windows rejects removal while any SQLite connection holds the file.
+            path.unlink()
+            self.assertFalse(path.exists())
     def test_import_layout_and_duplicate(self):
         # Synthetic workbook: the monthly investment must not become income;
         # cached formulas must not become expense transactions.

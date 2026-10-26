@@ -1,5 +1,6 @@
 """Persistência e importação; usa apenas a biblioteca padrão do Python."""
 import calendar
+from contextlib import closing
 import datetime as dt
 import hashlib
 import sqlite3
@@ -41,7 +42,7 @@ class Store:
     def rows(self, period='', search=''):
         return self.db.execute('SELECT * FROM entries WHERE period LIKE ? AND (description LIKE ? OR category LIKE ?) ORDER BY date DESC,id DESC',(period+'%', '%'+search+'%', '%'+search+'%')).fetchall()
     def backup(self, path):
-        with sqlite3.connect(path) as target: self.db.backup(target)
+        with closing(sqlite3.connect(path)) as target: self.db.backup(target)
     def import_xlsx(self,path):
         digest=hashlib.sha256(path.read_bytes()).hexdigest()
         if self.db.execute('SELECT 1 FROM imports WHERE hash=?',(digest,)).fetchone(): raise ValueError('Esta planilha já foi importada.')
