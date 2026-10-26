@@ -1,0 +1,9 @@
+__pycache__/
+*.db
+*.db-*
+*.xlsx
+*.csv
+.venv/
+build/
+dist/
+*.spec
