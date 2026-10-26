@@ -31,6 +31,7 @@ class Store:
         CREATE TABLE IF NOT EXISTS entries(id INTEGER PRIMARY KEY, date TEXT NOT NULL, period TEXT NOT NULL, kind TEXT NOT NULL, category TEXT NOT NULL, description TEXT NOT NULL, amount INTEGER NOT NULL CHECK(amount>=0), payment TEXT DEFAULT '', paid INTEGER DEFAULT 1, detail TEXT DEFAULT '');
         CREATE TABLE IF NOT EXISTS budgets(period TEXT, category TEXT, amount INTEGER, PRIMARY KEY(period,category));
         CREATE TABLE IF NOT EXISTS goals(id INTEGER PRIMARY KEY, name TEXT, target INTEGER, saved INTEGER, location TEXT DEFAULT '');
+        CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY, period TEXT, name TEXT, done INTEGER DEFAULT 0);
         CREATE TABLE IF NOT EXISTS imports(hash TEXT PRIMARY KEY, filename TEXT, imported_at TEXT);
         ''')
     def add(self, date, kind, category, description, amount, payment='', paid=1, detail='', period=None):
@@ -62,12 +63,18 @@ class Store:
                     cells[c.attrib['r']]=val or ''
                     if c.find('m:f',NS) is not None: cells['formula:'+c.attrib['r']]=True
                 sheets[s.attrib['name']]=cells
+        if not any(name in sheets for name in MONTHS): raise ValueError('Planilha incompatível: não foram encontradas as abas mensais do modelo 2026.')
         with self.db:
             for m,name in enumerate(MONTHS,1):
                 cells=sheets.get(name,{})
                 # The workbook is the supplied 2026 template. Preserve its monthly grouping
                 # separately from dates, which sometimes belong to preceding months.
                 period=f'2026-{m:02d}'; fallback=period+'-01'
+                card_status={cells.get(f'F{r}','').strip(): cells.get(f'H{r}') in ('1','true','TRUE') for r in range(35,50) if cells.get(f'F{r}','').startswith('Cartão ')}
+                for r in range(25,34):
+                    task=cells.get(f'G{r}','').strip()
+                    if task and not cells.get('formula:'+f'G{r}'):
+                        self.db.execute('INSERT INTO tasks(period,name,done) VALUES(?,?,?)',(period,task,int(cells.get(f'F{r}')=='1')))
                 header_rows=sorted(int(k[1:]) for k,v in cells.items() if k.startswith('K') and v.strip()=='Categoria')
                 income_end=next((r for r in range(6,1001) if 'investimentos' in cells.get(f'B{r}','').lower()),23)
                 for r in range(5,income_end):
@@ -88,7 +95,9 @@ class Store:
                         category=cells.get(f'K{r}') or 'Sem categoria'
                         description=cells.get(f'L{r}') or 'Despesa importada'
                         detail=f"Importado {name}, linha {r}; {cells.get(f'N{start}','Detalhe')}: {cells.get(f'N{r}','')}"
-                        self.add(excel_date(cells.get(f'M{r}'),fallback),'Despesa',category,description,amount,cells.get(f'O{r}',''),cells.get(f'Q{r}') in ('1','true','TRUE'),detail,period); count+=1
+                        payment=cells.get(f'O{r}','').strip()
+                        paid=cells.get(f'Q{r}') in ('1','true','TRUE') if start==header_rows[0] else card_status.get(payment,True)
+                        self.add(excel_date(cells.get(f'M{r}'),fallback),'Despesa',category,description,amount,payment,paid,detail,period); count+=1
                 for r in range(6,60):
                     cat=cells.get(f'X{r}','')
                     try: amount=cents(cells.get(f'Y{r}',''))
