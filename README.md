@@ -43,6 +43,20 @@ python -m PyInstaller --onefile --windowed --name MinhasFinancas app.py
 
 A compilação Windows é feita pelo GitHub Actions. Ainda requer teste de execução em Windows. Não há pacote macOS nesta versão.
 
+## Cadastros, calendário e aparência
+
+- A aba **Cadastros** permite adicionar, editar e excluir tipos, categorias e investimentos.
+- Cada tipo personalizado tem comportamento de Receita, Despesa, Aporte, Retirada ou Saldo inicial. Exemplo: Salário → Receita. Os relatórios usam o comportamento e os lançamentos exibem o nome cadastrado.
+- Tipos padrão são preservados. Tipos já utilizados podem ser renomeados, mas seu comportamento não pode mudar; crie outro tipo para outro comportamento. Cadastros utilizados não podem ser excluídos. Renomear uma categoria atualiza seus lançamentos e orçamentos.
+- Categorias de grupo Investimento aparecem na lista de investimentos mesmo antes de receber aportes.
+- O botão **Calendário** escolhe datas ou competência mensal. Em novos lançamentos, mudar a data atualiza a competência; ela ainda pode ser ajustada manualmente.
+- **Aparência: Claro / Escuro**, no topo, troca o tema e salva a preferência no banco local.
+- A visão geral mostra quatro gráficos: despesas por categoria (até cinco maiores), entradas e despesas mensais do ano, despesas pagas e pendentes do período e saldo acumulado dos investimentos. O gráfico de investimentos inclui saldos anteriores ao ano selecionado. O gráfico anual acompanha o ano do período selecionado.
+
+## Atualizar sem perder os dados
+
+Faça um backup pelo aplicativo, feche a versão anterior e abra o novo executável. O banco continua no mesmo diretório e recebe as novas tabelas automaticamente. Não é necessário importar a planilha novamente. Mantenha a cópia de segurança para voltar à versão anterior.
+
 ## Validação desta versão
 
-Quatro testes automatizados cobrem arredondamento monetário, backup, importação com fórmulas e bloqueio de duplicatas, além de rejeição de valores inválidos. A planilha fornecida foi exercitada localmente, sem incluí-la no Git: 313 movimentações, com receitas e reserva conciliadas. A interface gráfica e o executável ainda precisam de teste de execução no Windows.
+Dez testes automatizados cobrem cadastros, tipos personalizados nos cálculos, renomeação, migração de banco anterior, persistência de tema, calendário (incluindo ano bissexto), abertura dos formulários e renderização de gráficos nos dois temas, além de arredondamento monetário, backup, importação com fórmulas e bloqueio de duplicatas, além de rejeição de valores inválidos. A planilha fornecida foi exercitada localmente, sem incluí-la no Git: 313 movimentações, com receitas e reserva conciliadas. A interface foi exercitada em uma sessão gráfica Linux com dados sintéticos. O workflow Windows também executa os testes gráficos antes de gerar o executável; o uso manual do executável continua dependendo de validação em Windows.
