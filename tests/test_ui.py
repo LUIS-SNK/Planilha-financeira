@@ -1,4 +1,5 @@
 import os
+import sys
 import tempfile
 import tkinter as tk
 import unittest
@@ -11,7 +12,7 @@ class InterfaceTests(unittest.TestCase):
         try:
             root=tk.Tk(); root.withdraw(); root.destroy()
         except tk.TclError as e:
-            if os.name=='nt': raise
+            if sys.platform in ('win32','darwin'): raise
             raise unittest.SkipTest(f'Sessão gráfica indisponível: {e}')
     def setUp(self):
         self.directory=tempfile.TemporaryDirectory()

@@ -1,12 +1,18 @@
 # Minhas Finanças
 
-Aplicativo local para Windows: receitas, despesas, contas pagas e pendentes, repetições e parcelas, orçamento por categoria, gráficos, investimentos, reserva, metas, objetivos mensais, calculadora de reserva e resumo anual. Valores armazenados em centavos, em SQLite. Sem login, servidor ou conexão bancária.
+Aplicativo local para Windows e macOS: receitas, despesas, contas pagas e pendentes, repetições e parcelas, orçamento por categoria, gráficos, investimentos, reserva, metas, objetivos mensais, calculadora de reserva e resumo anual. Valores armazenados em centavos, em SQLite. Sem login, servidor ou conexão bancária.
 
 ## Baixar para Windows
 
 No GitHub, abra **Actions → Aplicativo Windows → execução mais recente concluída → Artifacts → MinhasFinancas-Windows**. Extraia o ZIP e abra `MinhasFinancas.exe`. O download de artefatos pode exigir login no GitHub. O executável ainda não tem assinatura digital.
 
 No primeiro uso, clique em **Importar Excel** e selecione sua planilha original. Dados financeiros não são distribuídos com o aplicativo nem publicados neste repositório.
+
+## Versão macOS
+
+[Instruções e requisitos de distribuição](docs/MACOS.md). O projeto compila um `.app` independente para Apple Silicon e Intel. **Enquanto não houver certificado Developer ID e notarização, não é publicado um pacote para download no Mac**, conforme a exigência de não contornar as configurações de segurança.
+
+O banco no Mac fica em `~/Library/Application Support/FinancasGeovana/financas.db`. Os backups do Windows podem ser transferidos para continuar o mesmo histórico.
 
 ## Uso
 
@@ -41,7 +47,7 @@ python -m pip install pyinstaller==6.16.0
 python -m PyInstaller --onefile --windowed --name MinhasFinancas app.py
 ```
 
-A compilação Windows é feita pelo GitHub Actions. Ainda requer teste de execução em Windows. Não há pacote macOS nesta versão.
+A compilação Windows é feita pelo GitHub Actions. Ainda requer teste de execução em Windows. O workflow macOS compila versões Apple Silicon e Intel. A distribuição para Mac depende de assinatura e notarização Apple; veja [macOS](docs/MACOS.md).
 
 ## Cadastros, calendário e aparência
 
@@ -59,4 +65,4 @@ Faça um backup pelo aplicativo, feche a versão anterior e abra o novo executá
 
 ## Validação desta versão
 
-Dez testes automatizados cobrem cadastros, tipos personalizados nos cálculos, renomeação, migração de banco anterior, persistência de tema, calendário (incluindo ano bissexto), abertura dos formulários e renderização de gráficos nos dois temas, além de arredondamento monetário, backup, importação com fórmulas e bloqueio de duplicatas, além de rejeição de valores inválidos. A planilha fornecida foi exercitada localmente, sem incluí-la no Git: 313 movimentações, com receitas e reserva conciliadas. A interface foi exercitada em uma sessão gráfica Linux com dados sintéticos. O workflow Windows também executa os testes gráficos antes de gerar o executável; o uso manual do executável continua dependendo de validação em Windows.
+A suíte de testes automatizados cobre cadastros, tipos personalizados nos cálculos, renomeação, migração de banco anterior, persistência de tema, calendário (incluindo ano bissexto), abertura dos formulários e renderização de gráficos nos dois temas, além de arredondamento monetário, backup, importação com fórmulas e bloqueio de duplicatas, além de rejeição de valores inválidos. A planilha fornecida foi exercitada localmente, sem incluí-la no Git: 313 movimentações, com receitas e reserva conciliadas. A interface foi exercitada em uma sessão gráfica Linux com dados sintéticos. O workflow Windows também executa os testes gráficos antes de gerar o executável; o uso manual do executável continua dependendo de validação em Windows.

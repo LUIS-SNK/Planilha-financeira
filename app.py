@@ -2,13 +2,17 @@ import calendar
 import csv
 import datetime as dt
 import os
+import sys
+import tempfile
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from core import Store, cents, money, BEHAVIORS
 from widgets import CalendarPicker, Dashboard, PALETTES, FONT_FAMILY
 
-DATA=Path(os.environ.get('LOCALAPPDATA',Path.home()/'.local/share'))/'FinancasGeovana'
+from paths import data_directory
+
+DATA=data_directory()
 
 class App(tk.Tk):
     def __init__(self, data_dir=None, welcome=True):
@@ -288,4 +292,19 @@ class App(tk.Tk):
         if path:
             self.store.backup(path); messagebox.showinfo('Backup','Backup salvo. Guarde uma cópia fora deste computador.')
 
-if __name__=='__main__': App().mainloop()
+def smoke_test():
+    """Exercita também o aplicativo empacotado sem tocar nos dados do usuário."""
+    with tempfile.TemporaryDirectory() as directory:
+        app=App(directory,welcome=False)
+        errors=[]
+        app.report_callback_exception=lambda *error: errors.append(error)
+        try:
+            app.update()
+            for mode in ('Escuro','Claro'):
+                app.mode.set(mode); app.apply_theme(); app.update()
+            if errors: raise RuntimeError('Falha em um callback da interface.')
+        finally: app.close()
+
+if __name__=='__main__':
+    if '--smoke-test' in sys.argv: smoke_test()
+    else: App().mainloop()

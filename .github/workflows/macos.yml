@@ -1,0 +1,44 @@
+name: Aplicativo macOS
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    name: macOS ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Testes, incluindo interface gráfica
+        run: python -m unittest discover -s tests -v
+      - run: python -m pip install pyinstaller==6.16.0
+      - name: Compilar, testar e notarizar quando configurado
+        id: package
+        env:
+          MACOS_CERTIFICATE_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: python scripts/build_macos.py
+      - name: Publicar somente aplicativo assinado e notarizado
+        if: steps.package.outputs.signed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MinhasFinancas-macOS-${{ matrix.arch }}-notarizado
+          path: release/*.zip
+          if-no-files-found: error
